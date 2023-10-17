@@ -1,44 +1,51 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./app.css";
+import Cards from "./components/cards";
+import { onlyNumbers } from "./utils/format";
 
 export default function Exemplo() {
-  const [formData, setFormdata] = useState({
-    nome: "",
-    sobrenome: "",
-  });
+  const [data, setData] = useState([]);
   const [seeUrl, setSeeUrl] = useState(null);
+  const [formData, setFormdata] = useState({
+    size: "",
+  });
 
   function handleInput(name, value) {
     setFormdata({ ...formData, [name]: value });
   }
 
-  function getDataFromApi(params) {
-    const { nome, sobrenome } = params;
+  function getDataFromApi() {
+    const { size } = formData;
 
-    //fetch(`https//:siteloko123&nome=${nome}&sobrenome=${sobrenome}`);
+    setSeeUrl(`https://jsonplaceholder.typicode.com/posts/${size}`);
 
-    setSeeUrl(`https//:siteloko123&nome=${nome}&sobrenome=${sobrenome}`);
+    fetch(`https://jsonplaceholder.typicode.com/posts/${size}`)
+      .then((response) => response.json())
+      .then((json) => (Array.isArray(json) ? setData(json) : setData([json])));
   }
+
+  useEffect(() => {
+    getDataFromApi();
+  }, []);
 
   return (
     <div className="main">
+      {seeUrl && <span style={{ marginBottom: 30 }}>Url:{seeUrl} </span>}
       <div className="input-div">
-        <label>Nome</label>
+        <label>id</label>
         <input
-          value={formData.nome}
-          onChange={(x) => handleInput("nome", x.target.value)}
+          value={formData.size}
+          onChange={(x) => handleInput("size", onlyNumbers(x.target.value))}
         />
       </div>
-      <div className="input-div">
-        <label>Sobrenome</label>
-        <input
-          value={formData.Sobrenome}
-          onChange={(x) => handleInput("sobrenome", x.target.value)}
-        />
-      </div>
-      <button onClick={() => getDataFromApi(formData)}>Pesquisar</button>
 
-      {seeUrl && <span style={{ marginTop: 30 }}>Url:{seeUrl} </span>}
+      <button onClick={() => getDataFromApi()}>Pesquisar</button>
+
+      <div className="cards-container">
+        {data.map((x) => {
+          return <Cards data={x} key={x?.id} />;
+        })}
+      </div>
     </div>
   );
 }
