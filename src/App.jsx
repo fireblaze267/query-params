@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import "./app.css";
 import Cards from "./components/cards";
-import { onlyNumbers } from "./utils/format";
 
 export default function Exemplo() {
   const [data, setData] = useState([]);
@@ -13,13 +12,14 @@ export default function Exemplo() {
   function handleInput(name, value) {
     setFormdata({ ...formData, [name]: value });
   }
+  const filtro = data.filter((x) => {
+    return x.title.includes(formData.size) || x.id == formData.id;
+  });
 
   function getDataFromApi() {
-    const { size } = formData;
+    setSeeUrl(`https://jsonplaceholder.typicode.com/posts/`);
 
-    setSeeUrl(`https://jsonplaceholder.typicode.com/posts/${size}`);
-
-    fetch(`https://jsonplaceholder.typicode.com/posts/${size}`)
+    fetch(`https://jsonplaceholder.typicode.com/posts`)
       .then((response) => response.json())
       .then((json) => (Array.isArray(json) ? setData(json) : setData([json])));
   }
@@ -28,23 +28,29 @@ export default function Exemplo() {
     getDataFromApi();
   }, []);
 
+  console.log(filtro);
+
   return (
     <div className="main">
-      {seeUrl && <span style={{ marginBottom: 30 }}>Url:{seeUrl} </span>}
+      {seeUrl && <span style={{ marginBottom: 30 }}>Url: {seeUrl} </span>}
       <div className="input-div">
         <label>id</label>
         <input
           value={formData.size}
-          onChange={(x) => handleInput("size", onlyNumbers(x.target.value))}
+          onChange={(x) => handleInput("size", x.target.value)}
         />
       </div>
 
       <button onClick={() => getDataFromApi()}>Pesquisar</button>
 
       <div className="cards-container">
-        {data.map((x) => {
-          return <Cards data={x} key={x?.id} />;
-        })}
+        {filtro.length > 0
+          ? filtro.map((x) => {
+              return <Cards data={x} key={x?.id} />;
+            })
+          : data.map((x) => {
+              return <Cards data={x} key={x?.id} />;
+            })}
       </div>
     </div>
   );
